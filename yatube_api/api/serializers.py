@@ -1,11 +1,13 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueTogetherValidator
 
-
-from posts.models import Comment, Post, Group, Follow, User
+from posts.models import Comment, Post, Group, Follow
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор комметариев."""
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
@@ -17,6 +19,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    """Сериализатор постов."""
     author = SlugRelatedField(slug_field='username', read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
 
@@ -28,6 +31,7 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class GroupSerializer(serializers.ModelSerializer):
+    """Сериализатор групп."""
 
     class Meta:
         fields = ('id', 'title', 'slug', 'description')
@@ -35,11 +39,29 @@ class GroupSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
-    user = SlugRelatedField(slug_field='username', read_only=True)
-    following = SlugRelatedField(
-        slug_field='username', queryset=User.objects.all()
+    """Сериализатор модели Follow."""
+    user = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    following = serializers.SlugRelatedField(
+        queryset=User.objects.all(), slug_field='username'
     )
 
     class Meta:
         fields = ('id', 'user', 'following')
         model = Follow
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'following')
+            )
+        ]
+
+    def validate_following(self, value):
+        """Валидация данных подписчиков."""
+        user = self.context['request'].user
+        if value == user:
+            raise serializers.ValidationError('Выберите другого пользователя.')
+        return value

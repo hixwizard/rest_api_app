@@ -1,5 +1,5 @@
-from rest_framework import viewsets, status, mixins, permissions
-from rest_framework.response import Response
+from rest_framework import filters
+from rest_framework import viewsets, permissions
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
@@ -42,28 +42,16 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, post=post)
 
 
-class FollowViewSet(
-    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
-):
+class FollowViewSet(viewsets.ModelViewSet):
+    """Набор отображений для подписчиков."""
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('following__username', 'user__username')
 
-    def list(self, request):
-        queryset = Follow.objects.filter(user=request.user)
-        search_query = request.query_params.get('search', None)
-        if search_query:
-            queryset = queryset.filter(
-                following__username__icontains=search_query
-            )
-        serializer = FollowSerializer(queryset, many=True)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return self.request.user.follower
 
-    def post(self, request):
-        data = request.data.copy()
-        data['user'] = request.user.id
-        serializer = FollowSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
