@@ -1,5 +1,7 @@
 from rest_framework import viewsets, status, mixins, permissions
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.pagination import LimitOffsetPagination
 from django.shortcuts import get_object_or_404
 
 from api.serializers import (PostSerializer, GroupSerializer,
@@ -12,7 +14,8 @@ class PostViewSet(viewsets.ModelViewSet):
     """Набор отображений для постов."""
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -28,7 +31,7 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     """Набор отображений для комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get_queryset(self):
         post = get_object_or_404(Post, id=self.kwargs.get('post_id'))
@@ -51,15 +54,11 @@ class FollowViewSet(
         serializer = FollowSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def follow(self, request):
-        serializer = FollowSerializer(data=request.data)
+    def post(self, request):
+        data = request.data.copy()
+        data['user'] = request.user.id
+        serializer = FollowSerializer(data=data)
         if serializer.is_valid():
-            if serializer.validated_data['following'] == request.user:
-                return Response(
-                    'Вы не можете быть подписанным на самого себя.',
-
-                    ststus=status.HTTP_400_BAD_REQUEST
-                )
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, satus=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
