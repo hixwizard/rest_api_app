@@ -50,7 +50,12 @@ class FollowViewSet(
     permission_classes = (permissions.IsAuthenticated,)
 
     def list(self, request):
-        queryset = Follow.objects.all()
+        queryset = Follow.objects.filter(user=request.user)
+        search_query = request.query_params.get('search', None)
+        if search_query:
+            queryset = queryset.filter(
+                following__username__icontains=search_query
+            )
         serializer = FollowSerializer(queryset, many=True)
         return Response(serializer.data)
 
