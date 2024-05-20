@@ -47,16 +47,17 @@ class FollowViewSet(
     permission_classes = (permissions.IsAuthenticated,)
 
     def list(self, request):
-        queryset = FollowSerializer(user=request.user)
+        queryset = Follow.objects.all()
         serializer = FollowSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def follow(self, request):
         serializer = FollowSerializer(data=request.data)
         if serializer.is_valid():
-            if serializer.validated_data['user'] == request.user:
+            if serializer.validated_data['following'] == request.user:
                 return Response(
                     'Вы не можете быть подписанным на самого себя.',
+
                     ststus=status.HTTP_400_BAD_REQUEST
                 )
             serializer.save()
