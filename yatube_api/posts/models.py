@@ -14,6 +14,10 @@ class Group(models.Model):
     def __str__(self):
         return self.title
 
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
 
 class Post(models.Model):
     """Модель постов."""
@@ -31,6 +35,10 @@ class Post(models.Model):
     def __str__(self):
         return self.text
 
+    class Meta:
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
+
 
 class Comment(models.Model):
     """Модель комментариев."""
@@ -45,6 +53,10 @@ class Comment(models.Model):
     def __str__(self):
         return self.text
 
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
 
 class Follow(models.Model):
     """Модель подписчиков."""
@@ -58,6 +70,13 @@ class Follow(models.Model):
     def clean(self):
         if self.user == self.following:
             raise ValidationError('Нельзя подписаться на самого себя.')
+        if Follow.objects.filter(
+                user=self.user, following=self.following).exists():
+            raise ValidationError('Вы уже подписаны на этого пользователя.')
 
     def __str__(self):
         return f'{self.user} подписался на {self.following}'
+
+    class Meta:
+        verbose_name = 'Подписчик'
+        verbose_name_plural = 'Подписчики'
