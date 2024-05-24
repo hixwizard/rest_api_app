@@ -11,12 +11,12 @@ class Group(models.Model):
     slug = models.SlugField(unique=True)
     description = models.TextField()
 
-    def __str__(self):
-        return self.title
-
     class Meta:
         verbose_name = 'Группа'
         verbose_name_plural = 'Группы'
+
+    def __str__(self):
+        return self.title
 
 
 class Post(models.Model):
@@ -32,12 +32,12 @@ class Post(models.Model):
         related_name='posts', blank=True, null=True
     )
 
-    def __str__(self):
-        return self.text
-
     class Meta:
         verbose_name = 'Пост'
         verbose_name_plural = 'Посты'
+
+    def __str__(self):
+        return self.text
 
 
 class Comment(models.Model):
@@ -50,12 +50,12 @@ class Comment(models.Model):
     created = models.DateTimeField(
         'Дата добавления', auto_now_add=True, db_index=True)
 
-    def __str__(self):
-        return self.text
-
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return self.text
 
 
 class Follow(models.Model):
@@ -74,9 +74,9 @@ class Follow(models.Model):
                 user=self.user, following=self.following).exists():
             raise ValidationError('Вы уже подписаны на этого пользователя.')
 
-    def __str__(self):
-        return f'{self.user} подписался на {self.following}'
-
     class Meta:
         verbose_name = 'Подписчик'
         verbose_name_plural = 'Подписчики'
+
+    def __str__(self):
+        return f'{self.user} подписался на {self.following}'
