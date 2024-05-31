@@ -12,7 +12,7 @@ class Group(models.Model):
     description = models.TextField()
 
     class Meta:
-        verbose_name = 'Группа'
+        verbose_name = 'группа'
         verbose_name_plural = 'Группы'
 
     def __str__(self):
@@ -33,8 +33,8 @@ class Post(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Пост'
-        verbose_name_plural = 'Посты'
+        verbose_name = 'публикация'
+        verbose_name_plural = 'Публикации'
 
     def __str__(self):
         return self.text
@@ -51,7 +51,7 @@ class Comment(models.Model):
         'Дата добавления', auto_now_add=True, db_index=True)
 
     class Meta:
-        verbose_name = 'Комментарий'
+        verbose_name = 'комментарий'
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
@@ -75,7 +75,7 @@ class Follow(models.Model):
             raise ValidationError('Вы уже подписаны на этого пользователя.')
 
     class Meta:
-        verbose_name = 'Подписчик'
+        verbose_name = 'подписчик'
         verbose_name_plural = 'Подписчики'
 
     def __str__(self):
